@@ -1,4 +1,4 @@
-import { getMarketBySlug } from "@/lib/polymarket/gamma"
+import { getMarketBySlug, Market } from "@/lib/polymarket/gamma"
 import { BetForm } from "@/components/markets/BetForm"
 import { Navbar } from "@/components/ui/Navbar"
 import Link from "next/link"
@@ -12,8 +12,8 @@ interface Props {
 }
 
 export default async function MarketPage({ params, searchParams }: Props) {
-  let market = null
-  let error = null
+  let market: Market | null = null
+  let error: string | null = null
 
   try {
     market = await getMarketBySlug(params.slug)

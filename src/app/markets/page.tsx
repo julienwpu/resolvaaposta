@@ -1,12 +1,12 @@
-import { getMarkets } from "@/lib/polymarket/gamma"
+import { getMarkets, Market } from "@/lib/polymarket/gamma"
 import { MarketsClient } from "@/components/markets/MarketsClient"
 import { Navbar } from "@/components/ui/Navbar"
 
 export const revalidate = 30
 
 export default async function MarketsPage() {
-  let markets = []
-  let error = null
+  let markets: Market[] = []
+  let error: string | null = null
 
   try {
     markets = await getMarkets({ limit: 100, active: true, closed: false })
