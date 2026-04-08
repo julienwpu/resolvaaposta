@@ -68,9 +68,9 @@ export function BetForm({ market, defaultSide, yesPrice, noPrice }: BetFormProps
       setStatus("success")
       setMessage(`Order placed! ${shares} shares at ${(price * 100).toFixed(0)}¢`)
       setAmount("")
-    } catch (e: any) {
+    } catch (e: unknown) {
       setStatus("error")
-      setMessage(e.message ?? "Something went wrong.")
+      setMessage(e instanceof Error ? e.message : "Something went wrong.")
     }
   }
 

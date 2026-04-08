@@ -10,7 +10,7 @@ export default async function MarketsPage() {
 
   try {
     markets = await getMarkets({ limit: 100, active: true, closed: false })
-  } catch (e) {
+  } catch {
     error = "Failed to load markets. Please try again."
   }
 

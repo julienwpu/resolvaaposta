@@ -31,22 +31,20 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json({ success: true, orderId: result?.orderID ?? null })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Order error:", error)
+    const msg = error instanceof Error ? error.message : "Order failed. Try again."
 
-    // Erros conhecidos do CLOB
-    if (error.message?.includes("not approved")) {
+    if (msg.includes("not approved")) {
       return NextResponse.json({
         error: "Wallet not approved. You need USDC.e on Polygon and contract approval.",
       }, { status: 403 })
     }
 
-    if (error.message?.includes("insufficient")) {
+    if (msg.includes("insufficient")) {
       return NextResponse.json({ error: "Insufficient balance." }, { status: 400 })
     }
 
-    return NextResponse.json({
-      error: error.message ?? "Order failed. Try again.",
-    }, { status: 500 })
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }

@@ -17,7 +17,7 @@ export default async function MarketPage({ params, searchParams }: Props) {
 
   try {
     market = await getMarketBySlug(params.slug)
-  } catch (e) {
+  } catch {
     error = "Market not found."
   }
 
