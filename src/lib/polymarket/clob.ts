@@ -1,7 +1,7 @@
 // CLOB Client — server-side only
 // NUNCA importar este arquivo em componentes "use client"
 
-import { ClobClient } from "@polymarket/clob-client"
+import { ClobClient, Side } from "@polymarket/clob-client"
 import { ethers } from "ethers"
 
 const CLOB_URL = "https://clob.polymarket.com"
@@ -44,7 +44,7 @@ export async function submitOrder({
   tokenId: string
   price: number
   size: number
-  side: "BUY" | "SELL"
+  side: Side
 }) {
   const client = getClobClient()
 

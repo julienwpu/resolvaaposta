@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { submitOrder } from "@/lib/polymarket/clob"
+import { Side } from "@polymarket/clob-client"
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
       tokenId,
       price,
       size,
-      side: "BUY", // sempre BUY — YES ou NO são tokens diferentes
+      side: Side.BUY, // sempre BUY — YES ou NO são tokens diferentes
     })
 
     return NextResponse.json({ success: true, orderId: result?.orderID ?? null })
