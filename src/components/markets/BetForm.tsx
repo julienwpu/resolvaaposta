@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { usePrivy } from "@privy-io/react-auth"
 import { Market } from "@/lib/polymarket/gamma"
+import { WalletSetup } from "@/components/wallet/WalletSetup"
+import { useWalletSetup } from "@/hooks/useWalletSetup"
 
 interface BetFormProps {
   market: Market
@@ -13,12 +15,13 @@ interface BetFormProps {
 
 export function BetForm({ market, defaultSide, yesPrice, noPrice }: BetFormProps) {
   const { authenticated, login } = usePrivy()
+  const { isReady, balance, isLoading } = useWalletSetup()
+
   const [side, setSide] = useState<"YES" | "NO">(defaultSide)
   const [amount, setAmount] = useState("")
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [message, setMessage] = useState("")
 
-  // clobTokenIds pode vir como string JSON da Gamma API
   const parseTokenIds = (ids: string[] | string | undefined): string[] => {
     if (!ids) return []
     if (typeof ids === "string") {
@@ -31,19 +34,12 @@ export function BetForm({ market, defaultSide, yesPrice, noPrice }: BetFormProps
   const price = side === "YES" ? yesPrice : noPrice
   const shares = amount && price > 0 ? (parseFloat(amount) / price).toFixed(2) : "0"
   const payout = amount ? (parseFloat(shares) * 1).toFixed(2) : "0"
-
   const presets = ["10", "25", "50", "100"]
 
   const handleSubmit = async () => {
-    if (!authenticated) {
-      login()
-      return
-    }
-
-    if (!amount || parseFloat(amount) <= 0) {
-      setMessage("Enter a valid amount.")
-      return
-    }
+    if (!authenticated) { login(); return }
+    if (!amount || parseFloat(amount) <= 0) { setMessage("Enter a valid amount."); return }
+    if (parseFloat(amount) > balance) { setMessage("Insufficient USDC balance."); return }
 
     setStatus("loading")
     setMessage("")
@@ -60,11 +56,8 @@ export function BetForm({ market, defaultSide, yesPrice, noPrice }: BetFormProps
           price,
         }),
       })
-
       const data = await res.json()
-
       if (!res.ok) throw new Error(data.error ?? "Order failed")
-
       setStatus("success")
       setMessage(`Order placed! ${shares} shares at ${(price * 100).toFixed(0)}¢`)
       setAmount("")
@@ -74,9 +67,35 @@ export function BetForm({ market, defaultSide, yesPrice, noPrice }: BetFormProps
     }
   }
 
+  // Not logged in
+  if (!authenticated) {
+    return (
+      <div className="border border-border rounded-xl p-4">
+        <h2 className="text-sm font-medium text-muted-foreground mb-4">Place a bet</h2>
+        <button
+          onClick={login}
+          className="w-full py-3 rounded-lg text-sm font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+        >
+          Connect wallet to bet
+        </button>
+      </div>
+    )
+  }
+
+  // Logged in but setup incomplete
+  if (!isLoading && !isReady) {
+    return <WalletSetup />
+  }
+
+  // Ready to bet
   return (
     <div className="border border-border rounded-xl p-4">
-      <h2 className="text-sm font-medium text-muted-foreground mb-4">Place a bet</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-medium text-muted-foreground">Place a bet</h2>
+        <span className="text-xs text-muted-foreground">
+          Balance: <span className="text-foreground font-medium">${balance.toFixed(2)}</span>
+        </span>
+      </div>
 
       {/* Side selector */}
       <div className="flex gap-2 mb-4">
@@ -112,6 +131,7 @@ export function BetForm({ market, defaultSide, yesPrice, noPrice }: BetFormProps
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
+            max={balance}
             className="w-full pl-7 pr-4 py-2.5 border border-border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
@@ -123,7 +143,8 @@ export function BetForm({ market, defaultSide, yesPrice, noPrice }: BetFormProps
           <button
             key={p}
             onClick={() => setAmount(p)}
-            className="flex-1 py-1.5 text-xs border border-border rounded-lg hover:bg-muted transition-colors"
+            disabled={parseFloat(p) > balance}
+            className="flex-1 py-1.5 text-xs border border-border rounded-lg hover:bg-muted transition-colors disabled:opacity-30"
           >
             ${p}
           </button>
@@ -153,17 +174,14 @@ export function BetForm({ market, defaultSide, yesPrice, noPrice }: BetFormProps
       {/* Submit */}
       <button
         onClick={handleSubmit}
-        disabled={status === "loading"}
+        disabled={status === "loading" || !amount || parseFloat(amount) > balance}
         className="w-full py-3 rounded-lg text-sm font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
       >
-        {!authenticated
-          ? "Connect wallet to bet"
-          : status === "loading"
+        {status === "loading"
           ? "Placing order..."
-          : `Bet ${side === "YES" ? "Yes" : "No"} ${amount ? `· $${amount}` : ""}`}
+          : `Bet ${side === "YES" ? "Yes" : "No"}${amount ? ` · $${amount}` : ""}`}
       </button>
 
-      {/* Feedback */}
       {message && (
         <p className={`text-xs mt-2 text-center ${status === "error" ? "text-destructive" : "text-green-600"}`}>
           {message}
