@@ -8,7 +8,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
         <div className="flex items-center gap-6">
           <Link href="/markets" className="font-bold text-lg tracking-tight hover:opacity-80 transition-opacity flex items-center gap-2">
-            <span className="text-primary">●</span> Polybet
+            <span className="text-primary">●</span> Jules
           </Link>
           <nav className="hidden sm:flex items-center gap-1">
             <Link

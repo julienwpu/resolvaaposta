@@ -10,7 +10,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Polybet",
+  title: "Jules",
   description: "Prediction markets powered by Polymarket",
 }
 
